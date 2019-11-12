@@ -1,45 +1,10 @@
 # CS 651 Final Project
-## Proposal
+Links:
 
-Framework: Apache Flink
+https://rawkintrevo.org/2016/09/30/big-data-for-n00bs-my-first-streaming-flink-program-twitter/
 
-Source: Twitter
+https://www.novatec-gmbh.de/en/blog/sentimentanalyzer/
 
-1. Stream-processing
-2. Functionalities
-   1. Trending hash tag dashboards (heatmaps, reaches, etc.)
-   2. Custom queries
-   3. User profile / demographics extraction
-   4. https://learning.oreilly.com/library/view/mining-the-social/9781449368180/pt03.html
+https://blog.brakmic.com/stream-processing-with-apache-flink/
 
-3. ML
-   1. Sentiment analysis
-   2. Graph analysis(?)
-
-4. Visualization
-
-
-
-TO DO:
-
-1. Go through Flink tutorial (https://training.ververica.com/)
-
-2. Read through OReilly problems
-
-3. Read about sentiment analysis
-
-   - Features (Twitter attributes) needed
-
-   - Develop own algorithm vs import package (need instructor approval)
-
-4. Read about graph analysis
-
-
-
-## Report
-
-1. Goal
-   - Learning objective
-   - What problems are we solving?
-2. Methodology
-3. Evaluation
+https://towardsdatascience.com/real-time-twitter-sentiment-analysis-for-brand-improvement-and-topic-tracking-chapter-1-3-e02f7652d8ff
