@@ -1,17 +1,33 @@
-Team Member:
+Zibai Wang, zibai.wang@uwaterloo.ca, 20819005
+Siqi Liu, sq2liu@uwaterloo.ca, 20428295
 
-Zibai Wang zibai.wang@uwaterloo.ca 20819005
-Siqi Liu
+# Project Proposal
 
-Our project will be the type 2 as described in the course webpage.
+Our group will be on topic #2 - learn and explore a (new) big data processing framework.
 
-"Learn and explore a (new) big data processing framework: 
-although we discussed a variety of processing frameworks in class, 
-the assignments focused on MapReduce and Spark. Here's your chance to learn a new processing framework, 
-e.g., Spark Streaming, GraphX, Giraph, Flink, etc. 
-The project would involve learning to use the processing framework and doing something interesting with it. 
-The "something interesting" might be a data mining algorithm, 
-although note that the expectations would be lower than building something in MapReduce or Spark, 
-since learning the new framework would form an essential component of the project."
+Specifically, we will be using **Apache Flink** to implement a Java-based program to **stream-process and analyze real-time Twitter data**.
 
-We are learning Apache Flink and we plan to do stream-processing twitter data. 
+First, the program takes in a query term (e.g. hashtag) from the user, and performs **real-time ETL of Tweets** that matches the given query term.
+
+Next, various data mining tasks and **real-time analytics** are performed and presented using **interactive visualization dashboards** (either in Apache Flink Dashboard, ElasticSearch or Kibana):
+
+- Geographic heat map (USA/Canada)
+- Top 10 most frequently occured words in Tweets
+- Top 10 liked Tweets
+- Top 10 retweeted Tweets
+- (Optional) real-time sentiment analysis (positive/negative/neutral)
+
+
+
+*Optional Tasks (if time allowed)*
+
+- Batch processing (given a time window, say 30 minutes, include historical Tweets as well)
+- Graph analysis
+
+# Goal
+
+By the end of the project, we hope to
+
+- Understand stream-processing, and how it is different from Spark's batch-processing
+- Become familiar with Apache Flink, and its Twitter API
+- Learn how to set-up real-time analytics dashboard
