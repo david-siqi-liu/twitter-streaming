@@ -1,0 +1,17 @@
+Team Member:
+
+Zibai Wang zibai.wang@uwaterloo.ca 20819005
+Siqi Liu
+
+Our project will be the type 2 as described in the course webpage.
+
+"Learn and explore a (new) big data processing framework: 
+although we discussed a variety of processing frameworks in class, 
+the assignments focused on MapReduce and Spark. Here's your chance to learn a new processing framework, 
+e.g., Spark Streaming, GraphX, Giraph, Flink, etc. 
+The project would involve learning to use the processing framework and doing something interesting with it. 
+The "something interesting" might be a data mining algorithm, 
+although note that the expectations would be lower than building something in MapReduce or Spark, 
+since learning the new framework would form an essential component of the project."
+
+We are learning Apache Flink and we plan to do stream-processing twitter data. 
