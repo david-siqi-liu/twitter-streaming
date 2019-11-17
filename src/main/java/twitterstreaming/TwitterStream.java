@@ -18,21 +18,25 @@
 
 package twitterstreaming;
 
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.twitter.TwitterSource;
+import org.apache.flink.streaming.examples.twitter.util.TwitterExampleData;
+import org.apache.flink.util.Collector;
+
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.StringTokenizer;
 
 /**
- * Skeleton for a Flink Streaming Job.
- *
- * <p>For a tutorial how to write a Flink streaming application, check the
- * tutorials and examples on the <a href="http://flink.apache.org/docs/stable/">Flink Website</a>.
- *
- * <p>To package your application into a JAR file for execution, run
- * 'mvn clean package' on the command line.
- *
- * <p>If you change the name of the main class (with the public static void main(String[] args))
- * method, change the respective entry in the POM.xml file (simply search for 'mainClass').
+ * Implements the "TwitterStream" program that computes a most used word
+ * occurrence over JSON objects in a streaming fashion.
  */
-public class StreamingJob {
+public class TwitterStream {
 
 	public static void main(String[] args) throws Exception {
 		// set up the streaming execution environment
