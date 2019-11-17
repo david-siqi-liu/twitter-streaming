@@ -13,7 +13,7 @@ https://github.com/godatadriven/flink-streaming-xke
 
 ## How To Run
 
-1. Start local cluster
+1. Start local cluster (in terminal one)
 
 ```bash
 cd /usr/local/Cellar/apache-flink/1.9.1
@@ -22,7 +22,7 @@ cd /usr/local/Cellar/apache-flink/1.9.1
 ```
 
 2. Web UI http://localhost:8081/
-3. Build project
+3. Build project (**better open another terminal**)
 
 ```bash
 cd ~/Github/twitter-streaming/
@@ -30,13 +30,21 @@ cd ~/Github/twitter-streaming/
 mvn clean package
 ```
 
-3. Start job
+4. Start job (**better open another terminal**)
 
 ```bash
-cd /usr/local/Cellar/apache-flink/1.9.1
-
 nc -l 9000
+```
 
-flink run -c twitterstreaming.TwitterStream ~/Github/twitter-streaming/target/twitter-streaming-1.0.jar --port 9000
+5. Run job (in first terminal)
+
+```bash
+./bin/flink run -c twitterstreaming.TwitterStream ~/Github/twitter-streaming/target/twitter-streaming-1.0.jar --port 9000
+```
+
+6. Check std output (in first terminal)
+
+```bash
+tail -f ./libexec/log/flink-dliu-taskexecutor-0-Davids-MacBook-Pro.local.out
 ```
 
