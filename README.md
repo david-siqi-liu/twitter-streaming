@@ -18,7 +18,7 @@ https://github.com/godatadriven/flink-streaming-xke
 ```bash
 cd /usr/local/Cellar/apache-flink/1.9.1
 
-./libexec/bin/start-local.sh
+./libexec/bin/start-cluster.sh
 ```
 
 2. Web UI http://localhost:8081/
