@@ -18,7 +18,7 @@ https://github.com/godatadriven/flink-streaming-xke
 ```bash
 cd /usr/local/Cellar/apache-flink/1.9.1
 
-./libexec/bin/start-local.sh
+./libexec/bin/start-cluster.sh
 ```
 
 2. Web UI http://localhost:8081/
@@ -45,6 +45,12 @@ nc -l 9000
 6. Check std output (in first terminal)
 
 ```bash
-tail -f ./libexec/log/flink-dliu-taskexecutor-0-Davids-MacBook-Pro.local.out
+tail -f libexec/log/flink-*-taskexecutor-*.out
+```
+
+7. Stop cluster (in first terminal)
+
+```bash
+./libexec/bin/stop-cluster.sh
 ```
 
