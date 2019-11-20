@@ -63,3 +63,5 @@ tail -f libexec/log/flink-*-taskexecutor-*.out
 Reference list:
 
 https://github.com/vriesdemichael/twitter-flink/blob/master/src/main/java/TwitterFilterEndpoint.java
+
+https://www.programcreek.com/java-api-examples/?code=IIDP/OSTMap/OSTMap-master/stream_processing/src/main/java/org/iidp/ostmap/stream_processing/GeoTwitterSource.java
