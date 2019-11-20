@@ -27,6 +27,8 @@ import com.twitter.hbc.common.DelimitedStreamReader;
 import com.twitter.hbc.core.Constants;
 import com.twitter.hbc.core.endpoint.StatusesSampleEndpoint;
 import com.twitter.hbc.core.endpoint.StreamingEndpoint;
+import com.twitter.hbc.core.endpoint.Location;
+import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
 import com.twitter.hbc.core.processor.HosebirdMessageProcessor;
 import com.twitter.hbc.httpclient.BasicClient;
 import com.twitter.hbc.httpclient.auth.Authentication;
@@ -39,6 +41,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Arrays;
 
 /**
  * Implementation of {@link SourceFunction} specialized to emit tweets from
@@ -73,7 +76,7 @@ public class TwitterSource extends RichSourceFunction<String> {
 
 	private final Properties properties;
 
-	private EndpointInitializer initializer = new SampleStatusesEndpoint();
+	private EndpointInitializer initializer = new FilterEndpoint();
 
 	// ----- Runtime fields
 	private transient BasicClient client;
@@ -204,4 +207,30 @@ public class TwitterSource extends RichSourceFunction<String> {
 			return endpoint;
 		}
 	}
+
+
+	private static class FilterEndpoint implements EndpointInitializer, Serializable {
+		@Override
+
+		// reference: https://www.programcreek.com/java-api-examples/?code=IIDP/OSTMap/OSTMap-master/stream_processing/src/main/java/org/iidp/ostmap/stream_processing/GeoTwitterSource.java
+
+		public StreamingEndpoint createEndpoint() {
+
+			StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint(false)
+                .locations(Arrays.asList(
+  
+                                new Location(
+                                        // north america: -168.48633, 13.23995 -50.36133, 72.76406
+                                        new Location.Coordinate(-168.48633, 13.23995), // south west
+                                        new Location.Coordinate(-50.36133, 72.76406))
+                        )
+                );
+
+			endpoint.stallWarnings(false);
+			endpoint.delimited(false);
+			return endpoint;
+		}
+	}
+
+
 }
