@@ -60,3 +60,6 @@ tail -f libexec/log/flink-*-taskexecutor-*.out
 ./libexec/bin/stop-cluster.sh
 ```
 
+Reference list:
+
+https://github.com/vriesdemichael/twitter-flink/blob/master/src/main/java/TwitterFilterEndpoint.java
