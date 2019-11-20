@@ -15,6 +15,7 @@ https://github.com/godatadriven/flink-streaming-xke
 
 StatusesSampleEndpoint.java: return random sample from all tweets
 StatusesFilterEndpoint.java: return tweets based on filter condition, including language, followings, location, term
+https://developer.twitter.com/en/docs/tweets/filter-realtime/api-reference/post-statuses-filter
 
 ## How To Run
 
