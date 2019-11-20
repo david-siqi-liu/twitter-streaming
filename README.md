@@ -11,6 +11,11 @@ https://towardsdatascience.com/real-time-twitter-sentiment-analysis-for-brand-im
 
 https://github.com/godatadriven/flink-streaming-xke
 
+# Twitter endpoints:
+
+StatusesSampleEndpoint.java: return random sample from all tweets
+StatusesFilterEndpoint.java: return tweets based on filter condition, including language, followings, location, term
+
 ## How To Run
 
 1. Start local cluster (in terminal one)
