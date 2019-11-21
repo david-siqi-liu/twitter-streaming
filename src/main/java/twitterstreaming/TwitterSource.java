@@ -216,8 +216,8 @@ public class TwitterSource extends RichSourceFunction<String> {
 
 		public StreamingEndpoint createEndpoint() {
 
-			StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint(false)
-                .locations(Arrays.asList(
+			StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint(false);
+			endpoint.locations(Arrays.asList(
   
                                 new Location(
                                         // north america: -168.48633, 13.23995 -50.36133, 72.76406
@@ -225,7 +225,7 @@ public class TwitterSource extends RichSourceFunction<String> {
                                         new Location.Coordinate(-50.36133, 72.76406))
                         )
                 );
-
+			endpoint.languages(Arrays.asList("en"));
 			endpoint.stallWarnings(false);
 			endpoint.delimited(false);
 			return endpoint;
