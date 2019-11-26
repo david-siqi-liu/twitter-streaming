@@ -9,7 +9,6 @@ import org.apache.flink.core.fs.FileSystem;
 
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentType;
 import twitterstreaming.object.*;
 import twitterstreaming.map.*;
 import twitterstreaming.util.TwitterExampleData;
@@ -25,19 +24,13 @@ import org.elasticsearch.client.Requests;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Implements the "TwitterStream" program that computes a most used word
  * occurrence over JSON objects in a streaming fashion.
  */
 public class TwitterStream {
-
-    // *************************************************************************
-    // PROGRAM
-    // *************************************************************************
 
     public static void main(String[] args) throws Exception {
 
@@ -60,6 +53,10 @@ public class TwitterStream {
         env.getConfig().setGlobalJobParameters(params);
         env.setParallelism(params.getInt("parallelism", 1));
 
+        // *************************************************************************
+        // DATA STREAM
+        // *************************************************************************
+
         // Get input data
         DataStream<String> streamSource;
         if (params.has(TwitterSource.CONSUMER_KEY) &&
@@ -80,8 +77,8 @@ public class TwitterStream {
         DataStream<Tweet> tweets = streamSource
                 .map(new TweetMap());
 
-        // Create Tuple2 <text, integer>, word counts
-        DataStream<Tuple2<String, Integer>> wordCountSum = tweets
+        // Create Tuple2 <String, Integer> of <Word, Count>
+        DataStream<Tuple2<String, Integer>> wordCount = tweets
                 .flatMap(new TextTokenizeFlatMap())
                 .keyBy(0)
                 .timeWindow(windowSize)
@@ -89,16 +86,20 @@ public class TwitterStream {
 
         // Emit result
         if (params.has("output")) {
-            wordCountSum.writeAsText(params.get("output"), FileSystem.WriteMode.OVERWRITE);
+            wordCount.writeAsText(params.get("output"), FileSystem.WriteMode.OVERWRITE);
         } else {
-            System.out.println("Printing result to stdout. Use --output to specify output path.");
-            wordCountSum.print();
+//            System.out.println("Printing result to stdout. Use --output to specify output path.");
+//            wordCount.print();
         }
+
+        // *************************************************************************
+        // ELASTICSEARCH
+        // *************************************************************************
 
         List<HttpHost> httpHosts = new ArrayList<>();
         httpHosts.add(new HttpHost("127.0.0.1", 9200, "http"));
 
-        // Use a ElasticsearchSink.Builder to create an ElasticsearchSink
+        // Create an ElasticsearchSink
         ElasticsearchSink.Builder<Tuple2<String, Integer>> esSinkBuilder = new ElasticsearchSink.Builder<>(
                 httpHosts,
                 new ElasticsearchSinkFunction<Tuple2<String, Integer>>() {
@@ -110,8 +111,8 @@ public class TwitterStream {
                                 .endObject();
 
                         return Requests.indexRequest()
-                                .index("my-index")
-                                .type("my-type")
+                                .index("word-count-index")
+                                .type("word-count-by-timestamp")
                                 .source(builder);
                     }
 
@@ -126,21 +127,11 @@ public class TwitterStream {
                 }
         );
 
-        // configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
+        // Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
         esSinkBuilder.setBulkFlushMaxActions(1);
 
-        // provide a RestClientFactory for custom configuration on the internally created REST client
-//        esSinkBuilder.setRestClientFactory(
-//                restClientBuilder -> {
-//                    restClientBuilder.setDefaultHeaders(...)
-//                    restClientBuilder.setMaxRetryTimeoutMillis(...)
-//                    restClientBuilder.setPathPrefix(...)
-//                    restClientBuilder.setHttpClientConfigCallback(...)
-//                }
-//        );
-
         // Finally, build and add the sink to the job's pipeline
-        wordCountSum.addSink(esSinkBuilder.build());
+        wordCount.addSink(esSinkBuilder.build());
 
         // Execute program
         env.execute("Twitter Stream");
