@@ -84,9 +84,17 @@ public class TwitterStream {
                 .timeWindow(windowSize)
                 .sum(1);
 
+        // Create Tuple2 <String, Integer> of <Hashtag, Count>
+        DataStream<Tuple2<String, Integer>> hashtagCount = tweets
+                .flatMap(new HashtagFlatMap())
+                .keyBy(0)
+                .timeWindow(windowSize)
+                .sum(1);
+
         // Emit result
         if (params.has("output")) {
-            wordCount.writeAsText(params.get("output"), FileSystem.WriteMode.OVERWRITE);
+            wordCount.writeAsText(params.get("output") + "wordCount.txt", FileSystem.WriteMode.OVERWRITE);
+            hashtagCount.writeAsText(params.get("output") + "hashtagCount.txt", FileSystem.WriteMode.OVERWRITE);
         } else {
 //            System.out.println("Printing result to stdout. Use --output to specify output path.");
 //            wordCount.print();
@@ -99,8 +107,8 @@ public class TwitterStream {
         List<HttpHost> httpHosts = new ArrayList<>();
         httpHosts.add(new HttpHost("127.0.0.1", 9200, "http"));
 
-        // Create an ElasticsearchSink
-        ElasticsearchSink.Builder<Tuple2<String, Integer>> esSinkBuilder = new ElasticsearchSink.Builder<>(
+        // Create an ElasticsearchSink for wordCount
+        ElasticsearchSink.Builder<Tuple2<String, Integer>> wordCountSink = new ElasticsearchSink.Builder<>(
                 httpHosts,
                 new ElasticsearchSinkFunction<Tuple2<String, Integer>>() {
                     public IndexRequest createIndexRequest(Tuple2<String, Integer> t) throws IOException {
@@ -127,11 +135,41 @@ public class TwitterStream {
                 }
         );
 
+        // Create an ElasticsearchSink for hashtagCount
+        ElasticsearchSink.Builder<Tuple2<String, Integer>> hashtagCountSink = new ElasticsearchSink.Builder<>(
+                httpHosts,
+                new ElasticsearchSinkFunction<Tuple2<String, Integer>>() {
+                    public IndexRequest createIndexRequest(Tuple2<String, Integer> t) throws IOException {
+                        XContentBuilder builder = XContentFactory.jsonBuilder()
+                                .startObject()
+                                .field("hashtag", t.f0)
+                                .field("count", t.f1)
+                                .endObject();
+
+                        return Requests.indexRequest()
+                                .index("hashtag-count-index")
+                                .type("hashtag-count-by-timestamp")
+                                .source(builder);
+                    }
+
+                    @Override
+                    public void process(Tuple2<String, Integer> t, RuntimeContext ctx, RequestIndexer indexer) {
+                        try {
+                            indexer.add(createIndexRequest(t));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+        );
+
         // Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
-        esSinkBuilder.setBulkFlushMaxActions(1);
+        wordCountSink.setBulkFlushMaxActions(1);
+        hashtagCountSink.setBulkFlushMaxActions(1);
 
         // Finally, build and add the sink to the job's pipeline
-        wordCount.addSink(esSinkBuilder.build());
+        wordCount.addSink(wordCountSink.build());
+        hashtagCount.addSink(hashtagCountSink.build());
 
         // Execute program
         env.execute("Twitter Stream");
