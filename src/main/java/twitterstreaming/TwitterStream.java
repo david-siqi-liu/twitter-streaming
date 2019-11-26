@@ -112,7 +112,7 @@ public class TwitterStream {
                         return Requests.indexRequest()
                                 .index("my-index")
                                 .type("my-type")
-                                .source(builder, XContentType.JSON);
+                                .source(builder);
                     }
 
                     @Override
