@@ -84,10 +84,17 @@ public class TwitterStream {
                 .timeWindow(windowSize)
                 .sum(1);
 
+        DataStream<Tuple2<String, Integer>> favouriteCount = tweets
+                .flatMap(new FavouriteCountFlatMap())
+                .keyBy(0)
+                .timeWindow(windowSize)
+                .sum(1); // without sum it won't let me compile, although sum doens't do anything here
+
         // Emit result
         if (params.has("output")) {
             wordCount.writeAsText(params.get("output") + "wordCount.txt", FileSystem.WriteMode.OVERWRITE);
             hashtagCount.writeAsText(params.get("output") + "hashtagCount.txt", FileSystem.WriteMode.OVERWRITE);
+            favouriteCount.writeAsText(params.get("output") + "favouriteCount.txt", FileSystem.WriteMode.OVERWRITE);
         }
 
         // *************************************************************************
@@ -109,14 +116,21 @@ public class TwitterStream {
                 new HashtagCountSink()
         );
 
+        //Create an ElasticsearchSink for FavouriteCount
+        ElasticsearchSink.Builder<Tuple2<String, Integer>> favouriteCountSink = new ElasticsearchSink.Builder<>(
+                httpHosts,
+                new FavouriteCountSink()
+        );
+
         // Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
         wordCountSink.setBulkFlushMaxActions(1);
         hashtagCountSink.setBulkFlushMaxActions(1);
+        favouriteCountSink.setBulkFlushMaxActions(1);
 
         // Finally, build and add the sink to the job's pipeline
         wordCount.addSink(wordCountSink.build());
         hashtagCount.addSink(hashtagCountSink.build());
-
+        favouriteCount.addSink(favouriteCountSink.build());
         // Execute program
         env.execute("Twitter Stream");
     }

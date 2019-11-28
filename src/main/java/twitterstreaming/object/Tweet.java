@@ -15,6 +15,7 @@ public class Tweet {
     private long user_id;
     private List<String> hashtags;
     private float[] coordinates;
+    private Integer favorite_count = 0;
 
     public Tweet(JsonNode jsonNode) {
 
@@ -47,6 +48,10 @@ public class Tweet {
             this.coordinates[0] = jsonNode.get("coordinates").get("coordinates").get(0).floatValue();
             this.coordinates[1] = jsonNode.get("coordinates").get("coordinates").get(1).floatValue();
         }
+
+        if (jsonNode.has("favorite_count")) {
+            this.favorite_count = jsonNode.get("favorite_count").asInt();
+        }
     }
 
     public String getTimestamp() {
@@ -75,6 +80,10 @@ public class Tweet {
 
     public float[] getCoordinates() {
         return this.coordinates;
+    }
+
+    public Integer getFavoriteCount() {
+        return this.favorite_count;
     }
 
 }

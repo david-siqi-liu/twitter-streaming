@@ -15,13 +15,15 @@ public class HashtagFlatMap implements FlatMapFunction<Tweet, Tuple2<String, Int
     @Override
     public void flatMap(Tweet value, Collector<Tuple2<String, Integer>> out) throws Exception {
         // Hashtags
-        Iterator<String> iter = value.getHashtags().iterator();
+        if (value.getHashtags() != null){
+            Iterator<String> iter = value.getHashtags().iterator();
 
-        while (iter.hasNext()) {
-            String result = iter.next();
+            while (iter.hasNext()) {
+                String result = iter.next();
 
-            if (!result.equals("")) {
-                out.collect(new Tuple2<>(result, 1));
+                if (!result.equals("")) {
+                    out.collect(new Tuple2<>(result, 1));
+                }
             }
         }
     }
