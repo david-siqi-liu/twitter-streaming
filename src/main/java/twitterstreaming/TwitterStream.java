@@ -7,22 +7,15 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.core.fs.FileSystem;
 
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
+import twitterstreaming.elasticsearch.*;
 import twitterstreaming.object.*;
 import twitterstreaming.map.*;
-import twitterstreaming.util.TwitterExampleData;
+import twitterstreaming.util.*;
 
-import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
-import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
 import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
 
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.client.Requests;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +37,7 @@ public class TwitterStream {
                 "[--twitter-source.tokenSecret <tokenSecret>]");
 
         // Time window
-        Time windowSize = Time.seconds(5);
+        Time windowSize = Time.seconds(60);
 
         // Set up the streaming execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -95,9 +88,6 @@ public class TwitterStream {
         if (params.has("output")) {
             wordCount.writeAsText(params.get("output") + "wordCount.txt", FileSystem.WriteMode.OVERWRITE);
             hashtagCount.writeAsText(params.get("output") + "hashtagCount.txt", FileSystem.WriteMode.OVERWRITE);
-        } else {
-//            System.out.println("Printing result to stdout. Use --output to specify output path.");
-//            wordCount.print();
         }
 
         // *************************************************************************
@@ -110,57 +100,13 @@ public class TwitterStream {
         // Create an ElasticsearchSink for wordCount
         ElasticsearchSink.Builder<Tuple2<String, Integer>> wordCountSink = new ElasticsearchSink.Builder<>(
                 httpHosts,
-                new ElasticsearchSinkFunction<Tuple2<String, Integer>>() {
-                    public IndexRequest createIndexRequest(Tuple2<String, Integer> t) throws IOException {
-                        XContentBuilder builder = XContentFactory.jsonBuilder()
-                                .startObject()
-                                .field("word", t.f0)
-                                .field("count", t.f1)
-                                .endObject();
-
-                        return Requests.indexRequest()
-                                .index("word-count-index")
-                                .type("word-count-by-timestamp")
-                                .source(builder);
-                    }
-
-                    @Override
-                    public void process(Tuple2<String, Integer> t, RuntimeContext ctx, RequestIndexer indexer) {
-                        try {
-                            indexer.add(createIndexRequest(t));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+                new WordCountSink()
         );
 
         // Create an ElasticsearchSink for hashtagCount
         ElasticsearchSink.Builder<Tuple2<String, Integer>> hashtagCountSink = new ElasticsearchSink.Builder<>(
                 httpHosts,
-                new ElasticsearchSinkFunction<Tuple2<String, Integer>>() {
-                    public IndexRequest createIndexRequest(Tuple2<String, Integer> t) throws IOException {
-                        XContentBuilder builder = XContentFactory.jsonBuilder()
-                                .startObject()
-                                .field("hashtag", t.f0)
-                                .field("count", t.f1)
-                                .endObject();
-
-                        return Requests.indexRequest()
-                                .index("hashtag-count-index")
-                                .type("hashtag-count-by-timestamp")
-                                .source(builder);
-                    }
-
-                    @Override
-                    public void process(Tuple2<String, Integer> t, RuntimeContext ctx, RequestIndexer indexer) {
-                        try {
-                            indexer.add(createIndexRequest(t));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+                new HashtagCountSink()
         );
 
         // Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
