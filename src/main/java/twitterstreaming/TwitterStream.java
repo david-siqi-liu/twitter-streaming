@@ -44,7 +44,7 @@ public class TwitterStream {
                 "[--twitter-source.tokenSecret <tokenSecret>]");
 
         // Time window
-        Time windowSize = Time.seconds(5);
+        Time windowSize = Time.seconds(60);
 
         // Set up the streaming execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -95,9 +95,6 @@ public class TwitterStream {
         if (params.has("output")) {
             wordCount.writeAsText(params.get("output") + "wordCount.txt", FileSystem.WriteMode.OVERWRITE);
             hashtagCount.writeAsText(params.get("output") + "hashtagCount.txt", FileSystem.WriteMode.OVERWRITE);
-        } else {
-//            System.out.println("Printing result to stdout. Use --output to specify output path.");
-//            wordCount.print();
         }
 
         // *************************************************************************
@@ -111,7 +108,7 @@ public class TwitterStream {
         ElasticsearchSink.Builder<Tuple2<String, Integer>> wordCountSink = new ElasticsearchSink.Builder<>(
                 httpHosts,
                 new ElasticsearchSinkFunction<Tuple2<String, Integer>>() {
-                    public IndexRequest createIndexRequest(Tuple2<String, Integer> t) throws IOException {
+                    IndexRequest createIndexRequest(Tuple2<String, Integer> t) throws IOException {
                         XContentBuilder builder = XContentFactory.jsonBuilder()
                                 .startObject()
                                 .field("word", t.f0)
@@ -139,7 +136,7 @@ public class TwitterStream {
         ElasticsearchSink.Builder<Tuple2<String, Integer>> hashtagCountSink = new ElasticsearchSink.Builder<>(
                 httpHosts,
                 new ElasticsearchSinkFunction<Tuple2<String, Integer>>() {
-                    public IndexRequest createIndexRequest(Tuple2<String, Integer> t) throws IOException {
+                    IndexRequest createIndexRequest(Tuple2<String, Integer> t) throws IOException {
                         XContentBuilder builder = XContentFactory.jsonBuilder()
                                 .startObject()
                                 .field("hashtag", t.f0)
