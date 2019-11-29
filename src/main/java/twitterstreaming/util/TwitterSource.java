@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package twitterstreaming;
+package twitterstreaming.util;
 
 import org.apache.flink.api.java.ClosureCleaner;
 import org.apache.flink.configuration.Configuration;
