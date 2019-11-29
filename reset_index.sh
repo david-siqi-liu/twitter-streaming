@@ -56,3 +56,22 @@ curl -X PUT "localhost:9200/favourite-count-index/_mapping/_doc?pretty" -H 'Cont
   }
 }
 '
+
+# GeoMap Count Index
+curl -X DELETE -allow_no_indices "localhost:9200/geomap-count-index/"
+
+curl -X PUT "localhost:9200/geomap-count-index?pretty" -H 'Content-Type: application/json' -d'
+{}
+'
+curl -X PUT "localhost:9200/geomap-count-index/_mapping/_doc?pretty" -H 'Content-Type: application/json' -d'
+{
+  "properties" : {
+    "location" : {
+      "type" : "geo_point"
+    },
+    "count" : {
+      "type" : "long"
+    }
+  }
+}
+'
