@@ -14,8 +14,8 @@ import twitterstreaming.elasticsearch.sink.HashtagCountSink;
 import twitterstreaming.elasticsearch.sink.WordCountSink;
 import twitterstreaming.map.*;
 import twitterstreaming.object.Tweet;
-import twitterstreaming.util.TwitterSource;
-
+import org.apache.flink.streaming.connectors.twitter.TwitterSource;
+import twitterstreaming.util.TwitterFilterEndpoint;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,8 +43,23 @@ public class TwitterStream {
         // DATA STREAM
         // *************************************************************************
 
+        // Initialize FileterEndpoint 
+
+        TwitterFilterEndpoint filterEndpoint = new TwitterFilterEndpoint();
+
+
+        // adding trackterm if specified
+        
+        if (params.has("track")) {
+            filterEndpoint.addTrackTerm(params.get("track").split(","));}
+        
         // Get input data
-        DataStream<String> streamSource = env.addSource(new TwitterSource(params.getProperties()));
+
+        TwitterSource twittersource = new TwitterSource(params.getProperties());
+        twittersource.setCustomEndpointInitializer(filterEndpoint);
+
+
+        DataStream<String> streamSource = env.addSource(twittersource);
 
         // Get tweets, store in Tweet objects
         DataStream<Tweet> tweets = streamSource
@@ -83,8 +98,6 @@ public class TwitterStream {
             wordCount.writeAsText(params.get("output") + "wordCount.txt", FileSystem.WriteMode.OVERWRITE);
             hashtagCount.writeAsText(params.get("output") + "hashtagCount.txt", FileSystem.WriteMode.OVERWRITE);
             favouriteCount.writeAsText(params.get("output") + "favouriteCount.txt", FileSystem.WriteMode.OVERWRITE);
-            geomapCount.writeAsText(params.get("output") + "geomapCount.txt", FileSystem.WriteMode.OVERWRITE);
-        }
 
         // *************************************************************************
         // ELASTICSEARCH
