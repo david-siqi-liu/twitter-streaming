@@ -2,19 +2,19 @@ package twitterstreaming;
 
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.core.fs.FileSystem;
-
-import twitterstreaming.elasticsearch.*;
-import twitterstreaming.object.*;
-import twitterstreaming.map.*;
-import twitterstreaming.util.*;
-
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
-
 import org.apache.http.HttpHost;
+import twitterstreaming.elasticsearch.sink.HashtagCountSink;
+import twitterstreaming.elasticsearch.sink.WordCountSink;
+import twitterstreaming.map.HashtagFlatMap;
+import twitterstreaming.map.TweetMap;
+import twitterstreaming.map.WordFlatMap;
+import twitterstreaming.object.Tweet;
+import twitterstreaming.util.TwitterSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,15 +29,9 @@ public class TwitterStream {
 
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
-        System.out.println("Usage: TwitterExample " +
-                "[--output <path>]" +
-                "[--twitter-source.consumerKey <key>]" +
-                "[--twitter-source.consumerSecret <secret>]" +
-                "[--twitter-source.token <token>]" +
-                "[--twitter-source.tokenSecret <tokenSecret>]");
 
         // Time window
-        Time windowSize = Time.seconds(60);
+        Time windowSize = Time.seconds(30);
 
         // Set up the streaming execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -51,20 +45,7 @@ public class TwitterStream {
         // *************************************************************************
 
         // Get input data
-        DataStream<String> streamSource;
-        if (params.has(TwitterSource.CONSUMER_KEY) &&
-                params.has(TwitterSource.CONSUMER_SECRET) &&
-                params.has(TwitterSource.TOKEN) &&
-                params.has(TwitterSource.TOKEN_SECRET)
-        ) {
-            streamSource = env.addSource(new TwitterSource(params.getProperties()));
-        } else {
-            System.out.println("Executing TwitterStream example with default props.");
-            System.out.println("Use --twitter-source.consumerKey <key> --twitter-source.consumerSecret <secret> " +
-                    "--twitter-source.token <token> --twitter-source.tokenSecret <tokenSecret> specify the authentication info.");
-            // get default test text data
-            streamSource = env.fromElements(TwitterExampleData.TEXTS);
-        }
+        DataStream<String> streamSource = env.addSource(new TwitterSource(params.getProperties()));
 
         // Get tweets, store in Tweet objects
         DataStream<Tweet> tweets = streamSource
@@ -72,12 +53,12 @@ public class TwitterStream {
 
         // Create Tuple2 <String, Integer> of <Word, Count>
         DataStream<Tuple2<String, Integer>> wordCount = tweets
-                .flatMap(new TextTokenizeFlatMap())
+                .flatMap(new WordFlatMap())
                 .keyBy(0)
                 .timeWindow(windowSize)
                 .sum(1);
 
-        // Create Tuple2 <String, Integer> of <Hashtag, Count>
+        // Create Tuple2 <String, Integer> of <Word, Count>
         DataStream<Tuple2<String, Integer>> hashtagCount = tweets
                 .flatMap(new HashtagFlatMap())
                 .keyBy(0)
@@ -94,19 +75,20 @@ public class TwitterStream {
         // ELASTICSEARCH
         // *************************************************************************
 
+        // Hosts
         List<HttpHost> httpHosts = new ArrayList<>();
         httpHosts.add(new HttpHost("127.0.0.1", 9200, "http"));
 
         // Create an ElasticsearchSink for wordCount
         ElasticsearchSink.Builder<Tuple2<String, Integer>> wordCountSink = new ElasticsearchSink.Builder<>(
                 httpHosts,
-                new WordCountSink()
+                new WordCountSink("word-count-index", "_doc")
         );
 
         // Create an ElasticsearchSink for hashtagCount
         ElasticsearchSink.Builder<Tuple2<String, Integer>> hashtagCountSink = new ElasticsearchSink.Builder<>(
                 httpHosts,
-                new HashtagCountSink()
+                new HashtagCountSink("hashtag-count-index", "_doc")
         );
 
         // Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
