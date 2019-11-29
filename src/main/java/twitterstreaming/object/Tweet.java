@@ -15,17 +15,14 @@ public class Tweet {
     private long user_id;
     private List<String> hashtags;
     private float[] coordinates;
+    private int favorite_count;
 
     public Tweet(JsonNode jsonNode) {
 
         this.timestamp = jsonNode.get("created_at").asText();
         this.id = jsonNode.get("id").asLong();
         this.text = jsonNode.get("text").asText();
-        if (jsonNode.has("retweeted_status")) {
-            this.retweeted = true;
-        } else {
-            this.retweeted = false;
-        }
+        this.retweeted = jsonNode.has("retweeted_status");
         this.user_id = jsonNode.get("user").get("id").asLong();
         if (jsonNode.has("entities") &&
                 jsonNode.get("entities").has("hashtags") &&
@@ -46,6 +43,11 @@ public class Tweet {
             this.coordinates = new float[2];
             this.coordinates[0] = jsonNode.get("coordinates").get("coordinates").get(0).floatValue();
             this.coordinates[1] = jsonNode.get("coordinates").get("coordinates").get(1).floatValue();
+        }
+        if (jsonNode.has("favorite_count")) {
+            this.favorite_count = jsonNode.get("favorite_count").asInt();
+        } else {
+            this.favorite_count = 0;
         }
     }
 
@@ -75,6 +77,10 @@ public class Tweet {
 
     public float[] getCoordinates() {
         return this.coordinates;
+    }
+
+    public int getFavoriteCount() {
+        return this.favorite_count;
     }
 
 }

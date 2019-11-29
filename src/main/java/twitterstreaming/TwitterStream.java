@@ -8,8 +8,10 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
 import org.apache.http.HttpHost;
+import twitterstreaming.elasticsearch.sink.FavouriteCountSink;
 import twitterstreaming.elasticsearch.sink.HashtagCountSink;
 import twitterstreaming.elasticsearch.sink.WordCountSink;
+import twitterstreaming.map.FavouriteCountFlatMap;
 import twitterstreaming.map.HashtagFlatMap;
 import twitterstreaming.map.TweetMap;
 import twitterstreaming.map.WordFlatMap;
@@ -65,10 +67,18 @@ public class TwitterStream {
                 .timeWindow(windowSize)
                 .sum(1);
 
+        // Create Tuple2 <String, Integer> of <Favourite, Count>
+        DataStream<Tuple2<String, Integer>> favouriteCount = tweets
+                .flatMap(new FavouriteCountFlatMap())
+                .keyBy(0)
+                .timeWindow(windowSize)
+                .sum(1);
+
         // Emit result
         if (params.has("output")) {
             wordCount.writeAsText(params.get("output") + "wordCount.txt", FileSystem.WriteMode.OVERWRITE);
             hashtagCount.writeAsText(params.get("output") + "hashtagCount.txt", FileSystem.WriteMode.OVERWRITE);
+            favouriteCount.writeAsText(params.get("output") + "favouriteCount.txt", FileSystem.WriteMode.OVERWRITE);
         }
 
         // *************************************************************************
@@ -91,13 +101,21 @@ public class TwitterStream {
                 new HashtagCountSink("hashtag-count-index", "_doc")
         );
 
+        // Create an ElasticsearchSink for favouriteCount
+        ElasticsearchSink.Builder<Tuple2<String, Integer>> favouriteCountSink = new ElasticsearchSink.Builder<>(
+                httpHosts,
+                new FavouriteCountSink("favourite-count-index", "_doc")
+        );
+
         // Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
         wordCountSink.setBulkFlushMaxActions(1);
         hashtagCountSink.setBulkFlushMaxActions(1);
+        favouriteCountSink.setBulkFlushMaxActions(1);
 
         // Finally, build and add the sink to the job's pipeline
         wordCount.addSink(wordCountSink.build());
         hashtagCount.addSink(hashtagCountSink.build());
+        favouriteCount.addSink(favouriteCountSink.build());
 
         // Execute program
         env.execute("Twitter Stream");

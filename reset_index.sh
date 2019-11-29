@@ -37,3 +37,22 @@ curl -X PUT "localhost:9200/hashtag-count-index/_mapping/_doc?pretty" -H 'Conten
   }
 }
 '
+
+# Favourite Count Index
+curl -X DELETE -allow_no_indices "localhost:9200/favourite-count-index/"
+
+curl -X PUT "localhost:9200/favourite-count-index?pretty" -H 'Content-Type: application/json' -d'
+{}
+'
+curl -X PUT "localhost:9200/favourite-count-index/_mapping/_doc?pretty" -H 'Content-Type: application/json' -d'
+{
+  "properties": {
+    "text": {
+      "type": "keyword"
+    },
+    "count": {
+      "type": "long"
+    }
+  }
+}
+'
