@@ -7,7 +7,7 @@ import java.util.StringTokenizer;
 
 import twitterstreaming.object.Tweet;
 
-public class TextTokenizeFlatMap implements FlatMapFunction<Tweet, Tuple2<String, Integer>> {
+public class WordFlatMap implements FlatMapFunction<Tweet, Tuple2<String, Integer>> {
 
     /**
      * Tokenize Tweeter Text and emit each word as (word, 1)
