@@ -17,44 +17,55 @@ import java.util.Arrays;
 import java.util.List;
 
 
-
 public class TwitterFilterEndpoint implements TwitterSource.EndpointInitializer, Serializable {
 
     private ArrayList<String> trackTerms;
+    private ArrayList<String> languages;
+    private boolean onlyNA;
 
     public TwitterFilterEndpoint() {
         this.trackTerms = new ArrayList<>();
+        this.languages = new ArrayList<>();
+        this.onlyNA = false;
     }
 
-    public void addTrackTerm(String... trackTerm) {
-        Collections.addAll(this.trackTerms, trackTerm);
+    public void AddTrackTerms(String[] trackTerms) {
+        Collections.addAll(this.trackTerms, trackTerms);
+    }
+
+    public void AddLanguages(String[] languages) {
+        Collections.addAll(this.languages, languages);
+    }
+
+    public void AddNAOnly(){
+        this.onlyNA = true;
     }
 
     @Override
     public StreamingEndpoint createEndpoint() {
         StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint(false);
 
-        /*
-
-        endpoint.locations(Arrays.asList(
-  
-                                new Location(
-                                        // north america: -168.48633, 13.23995 -50.36133, 72.76406
-                                        new Location.Coordinate(-168.48633, 13.23995), // south west
-                                        new Location.Coordinate(-50.36133, 72.76406))
-                        )
-                );
-        */
-        endpoint.languages(Arrays.asList("en"));
-        
-        if (trackTerms.size() > 0) {
-            endpoint.trackTerms(trackTerms);
+        if (this.onlyNA){
+            endpoint.locations(Arrays.asList(
+                    new Location(
+                            // North America
+                            new Location.Coordinate(-168.48, 13.23),
+                            new Location.Coordinate(-50.36, 72.76))
+                    )
+            );
         }
 
-    
+        if (this.languages.size() > 0){
+            endpoint.languages(this.languages);
+        }
+
+        if (this.trackTerms.size() > 0) {
+            endpoint.trackTerms(this.trackTerms);
+        }
+
         endpoint.stallWarnings(false);
         endpoint.delimited(false);
-    
+
         return endpoint;
     }
 

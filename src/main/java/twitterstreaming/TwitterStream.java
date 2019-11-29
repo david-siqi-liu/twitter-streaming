@@ -46,10 +46,21 @@ public class TwitterStream {
         // Get input data
         TwitterSource twittersource = new TwitterSource(params.getProperties());
 
-        // Add tracked term(s) if specified
-        if (params.has("track")) {
+        // Add tracked term(s), if specified
+        // Filter languages (e.g. "en") and North America, if specified
+        if (params.has("track") || params.has("language") || params.has("onlyna")) {
             TwitterFilterEndpoint filterEndpoint = new TwitterFilterEndpoint();
-            filterEndpoint.addTrackTerm(params.get("track").split(","));
+
+            if (params.has("track")) {
+                filterEndpoint.AddTrackTerms(params.get("track").split(","));
+            }
+            if (params.has("language")){
+                filterEndpoint.AddLanguages(params.get("language").split(","));
+            }
+            if (params.has("onlyna")){
+                filterEndpoint.AddNAOnly();
+            }
+
             twittersource.setCustomEndpointInitializer(filterEndpoint);
         }
 
@@ -92,7 +103,9 @@ public class TwitterStream {
         if (params.has("output")) {
             wordCount.writeAsText(params.get("output") + "wordCount.txt", FileSystem.WriteMode.OVERWRITE);
             hashtagCount.writeAsText(params.get("output") + "hashtagCount.txt", FileSystem.WriteMode.OVERWRITE);
-            favouriteCount.writeAsText(params.get("output") + "favouriteCount.txt", FileSystem.WriteMode.OVERWRITE);}
+            favouriteCount.writeAsText(params.get("output") + "favouriteCount.txt", FileSystem.WriteMode.OVERWRITE);
+            geomapCount.writeAsText(params.get("output") + "geomapCount.txt", FileSystem.WriteMode.OVERWRITE);
+        }
 
         // *************************************************************************
         // ELASTICSEARCH
