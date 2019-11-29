@@ -1,5 +1,6 @@
 package twitterstreaming.object;
 
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ public class Tweet {
     private boolean retweeted;
     private long user_id;
     private List<String> hashtags;
-    private float[] coordinates;
+    private Tuple2<Float, Float> coordinates;
     private int favorite_count;
 
     public Tweet(JsonNode jsonNode) {
@@ -40,9 +41,13 @@ public class Tweet {
                 jsonNode.get("coordinates").has("coordinates") &&
                 jsonNode.get("coordinates").get("coordinates").has(0) &&
                 jsonNode.get("coordinates").get("coordinates").has(1)) {
-            this.coordinates = new float[2];
-            this.coordinates[0] = jsonNode.get("coordinates").get("coordinates").get(0).floatValue();
-            this.coordinates[1] = jsonNode.get("coordinates").get("coordinates").get(1).floatValue();
+            // Twitter uses <lon, lat> while ES uses <lat, lon>
+            float lon = jsonNode.get("coordinates").get("coordinates").get(0).floatValue();
+            float lat = jsonNode.get("coordinates").get("coordinates").get(1).floatValue();
+            this.coordinates = new Tuple2<>(lat, lon);
+//            this.coordinates = new float[2];
+//            this.coordinates[0] = jsonNode.get("coordinates").get("coordinates").get(0).floatValue();
+//            this.coordinates[1] = jsonNode.get("coordinates").get("coordinates").get(1).floatValue();
         }
         if (jsonNode.has("favorite_count")) {
             this.favorite_count = jsonNode.get("favorite_count").asInt();
@@ -75,7 +80,7 @@ public class Tweet {
         return this.hashtags;
     }
 
-    public float[] getCoordinates() {
+    public Tuple2<Float, Float> getCoordinates() {
         return this.coordinates;
     }
 
