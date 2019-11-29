@@ -32,9 +32,9 @@ public class GeoMapCountSink implements ElasticsearchSinkFunction<Tuple2<Tuple2<
                     .endObject()
                     .field("count", t.f1)
                     .endObject();
-            IndexRequest indexRequest = Client.getInstance().requestIndex(indexName, docName, docId.toString(), json);
+            IndexRequest indexRequest = Client.getInstance().requestIndex(this.indexName, this.docName, this.docId.toString(), json);
             indexer.add(indexRequest);
-            docId += 1;
+            this.docId = this.docId + 1;
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -29,9 +29,9 @@ public class WordCountSink implements ElasticsearchSinkFunction<Tuple2<String, I
                     .field("word", t.f0)
                     .field("count", t.f1)
                     .endObject();
-            IndexRequest indexRequest = Client.getInstance().requestIndex(indexName, docName, docId.toString(), json);
+            IndexRequest indexRequest = Client.getInstance().requestIndex(this.indexName, this.docName, this.docId.toString(), json);
             indexer.add(indexRequest);
-            docId += 1;
+            this.docId = this.docId + 1;
         } catch (Exception e) {
             e.printStackTrace();
         }
