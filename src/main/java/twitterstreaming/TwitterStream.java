@@ -54,8 +54,8 @@ public class TwitterStream {
         // adding trackterm if specified
         
         if (params.has("track")) {
-            filterEndpoint.addTrackTerm(params.get("track").replace(" ", "").split(","));}
-        */
+            filterEndpoint.addTrackTerm(params.get("track").split(","));}
+        
         // Get input data
 
         TwitterSource twittersource = new TwitterSource(params.getProperties());
