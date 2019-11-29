@@ -20,6 +20,8 @@ public class Tweet {
 
     public Tweet(JsonNode jsonNode) {
 
+//        System.out.println(jsonNode);
+
         this.timestamp = jsonNode.get("created_at").asText();
         this.id = jsonNode.get("id").asLong();
         this.text = jsonNode.get("text").asText();
@@ -45,9 +47,18 @@ public class Tweet {
             float lon = jsonNode.get("coordinates").get("coordinates").get(0).floatValue();
             float lat = jsonNode.get("coordinates").get("coordinates").get(1).floatValue();
             this.coordinates = new Tuple2<>(lat, lon);
-//            this.coordinates = new float[2];
-//            this.coordinates[0] = jsonNode.get("coordinates").get("coordinates").get(0).floatValue();
-//            this.coordinates[1] = jsonNode.get("coordinates").get("coordinates").get(1).floatValue();
+        } else if (jsonNode.has("place") &&
+                jsonNode.get("place").has("bounding_box") &&
+                jsonNode.get("place").get("bounding_box").has("coordinates") &&
+                jsonNode.get("place").get("bounding_box").get("coordinates").has(0)) {
+            JsonNode bounding_box = jsonNode.get("place").get("bounding_box").get("coordinates");
+            float lon = 0;
+            float lat = 0;
+            for (JsonNode p : bounding_box.get(0)){
+                lon = lon + p.get(0).floatValue();
+                lat = lat + p.get(1).floatValue();
+            }
+            this.coordinates = new Tuple2<>(lat/4, lon/4);
         }
         if (jsonNode.has("favorite_count")) {
             this.favorite_count = jsonNode.get("favorite_count").asInt();
