@@ -43,22 +43,17 @@ public class TwitterStream {
         // DATA STREAM
         // *************************************************************************
 
-        // Initialize FileterEndpoint 
-
-        TwitterFilterEndpoint filterEndpoint = new TwitterFilterEndpoint();
-
-
-        // adding trackterm if specified
-        
-        if (params.has("track")) {
-            filterEndpoint.addTrackTerm(params.get("track").split(","));}
-        
         // Get input data
-
         TwitterSource twittersource = new TwitterSource(params.getProperties());
-        twittersource.setCustomEndpointInitializer(filterEndpoint);
 
+        // Add tracked term(s) if specified
+        if (params.has("track")) {
+            TwitterFilterEndpoint filterEndpoint = new TwitterFilterEndpoint();
+            filterEndpoint.addTrackTerm(params.get("track").split(","));
+            twittersource.setCustomEndpointInitializer(filterEndpoint);
+        }
 
+        // Stream source
         DataStream<String> streamSource = env.addSource(twittersource);
 
         // Get tweets, store in Tweet objects
