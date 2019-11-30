@@ -12,20 +12,17 @@ public class Tweet {
     private String timestamp;
     private long id;
     private String text;
-    private boolean retweeted;
+    private boolean retweet;
     private long user_id;
     private List<String> hashtags;
     private Tuple2<Float, Float> coordinates;
     private int favorite_count;
 
     public Tweet(JsonNode jsonNode) {
-
-//        System.out.println(jsonNode);
-
         this.timestamp = jsonNode.get("created_at").asText();
         this.id = jsonNode.get("id").asLong();
         this.text = jsonNode.get("text").asText();
-        this.retweeted = jsonNode.has("retweeted_status");
+        this.retweet = jsonNode.has("retweeted_status");
         this.user_id = jsonNode.get("user").get("id").asLong();
         if (jsonNode.has("entities") &&
                 jsonNode.get("entities").has("hashtags") &&
@@ -54,11 +51,11 @@ public class Tweet {
             JsonNode bounding_box = jsonNode.get("place").get("bounding_box").get("coordinates");
             float lon = 0;
             float lat = 0;
-            for (JsonNode p : bounding_box.get(0)){
+            for (JsonNode p : bounding_box.get(0)) {
                 lon = lon + p.get(0).floatValue();
                 lat = lat + p.get(1).floatValue();
             }
-            this.coordinates = new Tuple2<>(lat/4, lon/4);
+            this.coordinates = new Tuple2<>(lat / 4, lon / 4);
         }
         if (jsonNode.has("favorite_count")) {
             this.favorite_count = jsonNode.get("favorite_count").asInt();
@@ -79,8 +76,8 @@ public class Tweet {
         return this.text;
     }
 
-    public boolean getRetweeted() {
-        return this.retweeted;
+    public boolean getRetweet() {
+        return this.retweet;
     }
 
     public long getUserId() {

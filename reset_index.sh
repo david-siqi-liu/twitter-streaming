@@ -38,17 +38,20 @@ curl -X PUT "localhost:9200/hashtag-count-index/_mapping/_doc?pretty" -H 'Conten
 }
 '
 
-# Favourite Count Index
-curl -X DELETE -allow_no_indices "localhost:9200/favourite-count-index/"
+# Tweet Type Count Index
+curl -X DELETE -allow_no_indices "localhost:9200/type-count-index/"
 
-curl -X PUT "localhost:9200/favourite-count-index?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT "localhost:9200/type-count-index?pretty" -H 'Content-Type: application/json' -d'
 {}
 '
-curl -X PUT "localhost:9200/favourite-count-index/_mapping/_doc?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT "localhost:9200/type-count-index/_mapping/_doc?pretty" -H 'Content-Type: application/json' -d'
 {
   "properties": {
-    "text": {
+    "tweet_type": {
       "type": "keyword"
+    },
+    "timestamp": {
+      "type": "date"
     },
     "count": {
       "type": "long"
