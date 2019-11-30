@@ -1,21 +1,27 @@
 package twitterstreaming;
 
+import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
+import org.apache.flink.streaming.connectors.twitter.TwitterSource;
+import org.apache.flink.util.Collector;
 import org.apache.http.HttpHost;
-import twitterstreaming.elasticsearch.sink.FavouriteCountSink;
 import twitterstreaming.elasticsearch.sink.GeoMapCountSink;
 import twitterstreaming.elasticsearch.sink.HashtagCountSink;
+import twitterstreaming.elasticsearch.sink.TweetTypeCountSink;
 import twitterstreaming.elasticsearch.sink.WordCountSink;
 import twitterstreaming.map.*;
 import twitterstreaming.object.Tweet;
-import org.apache.flink.streaming.connectors.twitter.TwitterSource;
 import twitterstreaming.util.TwitterFilterEndpoint;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +36,7 @@ public class TwitterStream {
         final ParameterTool params = ParameterTool.fromArgs(args);
 
         // Time window
-        Time windowSize = Time.seconds(30);
+        Time windowSize = Time.seconds(5);
 
         // Set up the streaming execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -54,10 +60,10 @@ public class TwitterStream {
             if (params.has("track")) {
                 filterEndpoint.AddTrackTerms(params.get("track").split(","));
             }
-            if (params.has("language")){
+            if (params.has("language")) {
                 filterEndpoint.AddLanguages(params.get("language").split(","));
             }
-            if (params.has("onlyna")){
+            if (params.has("onlyna")) {
                 filterEndpoint.AddNAOnly();
             }
 
@@ -85,12 +91,24 @@ public class TwitterStream {
                 .timeWindow(windowSize)
                 .sum(1);
 
-        // Create Tuple2 <String, Integer> of <Favourite, Count>
-        DataStream<Tuple2<String, Integer>> favouriteCount = tweets
-                .flatMap(new FavouriteCountFlatMap())
+        // Create Tuple3<String, Long, Integer> of <Tweet/Retweet, Time, Count>
+        DataStream<Tuple3<String, Long, Integer>> tweetTypeCount = tweets
+                .flatMap(new TweetTypeCountFlatMap())
                 .keyBy(0)
                 .timeWindow(windowSize)
-                .sum(1);
+                .process(new ProcessWindowFunction<Tuple2<String, Integer>, Tuple3<String, Long, Integer>, Tuple, TimeWindow>() {
+                    @Override
+                    public void process(Tuple tuple, Context context, Iterable<Tuple2<String, Integer>> iterable,
+                                        Collector<Tuple3<String, Long, Integer>> collector) throws Exception {
+                        int count = 0;
+                        String type = "";
+                        for (Tuple2<String, Integer> item : iterable) {
+                            type = item.f0;
+                            count += item.f1;
+                        }
+                        collector.collect(new Tuple3<>(type, context.window().getStart(), count));
+                    }
+                });
 
         // Create Tuple2 <Tuple2<Float, Float>, Integer> of <Location, Count>
         DataStream<Tuple2<Tuple2<Float, Float>, Integer>> geomapCount = tweets
@@ -103,7 +121,7 @@ public class TwitterStream {
         if (params.has("output")) {
             wordCount.writeAsText(params.get("output") + "wordCount.txt", FileSystem.WriteMode.OVERWRITE);
             hashtagCount.writeAsText(params.get("output") + "hashtagCount.txt", FileSystem.WriteMode.OVERWRITE);
-            favouriteCount.writeAsText(params.get("output") + "favouriteCount.txt", FileSystem.WriteMode.OVERWRITE);
+            tweetTypeCount.writeAsText(params.get("output") + "tweetTypeCount.txt", FileSystem.WriteMode.OVERWRITE);
             geomapCount.writeAsText(params.get("output") + "geomapCount.txt", FileSystem.WriteMode.OVERWRITE);
         }
 
@@ -127,10 +145,10 @@ public class TwitterStream {
                 new HashtagCountSink("hashtag-count-index", "_doc")
         );
 
-        // Create an ElasticsearchSink for favouriteCount
-        ElasticsearchSink.Builder<Tuple2<String, Integer>> favouriteCountSink = new ElasticsearchSink.Builder<>(
+        // Create an ElasticsearchSink for tweetTypeCount
+        ElasticsearchSink.Builder<Tuple3<String, Long, Integer>> tweetTypeCountSink = new ElasticsearchSink.Builder<>(
                 httpHosts,
-                new FavouriteCountSink("favourite-count-index", "_doc")
+                new TweetTypeCountSink("type-count-index", "_doc")
         );
 
         // Create an ElasticsearchSink for favouriteCount
@@ -142,13 +160,13 @@ public class TwitterStream {
         // Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
         wordCountSink.setBulkFlushMaxActions(1);
         hashtagCountSink.setBulkFlushMaxActions(1);
-        favouriteCountSink.setBulkFlushMaxActions(1);
+        tweetTypeCountSink.setBulkFlushMaxActions(1);
         geomapCountSink.setBulkFlushMaxActions(1);
 
         // Finally, build and add the sink to the job's pipeline
         wordCount.addSink(wordCountSink.build());
         hashtagCount.addSink(hashtagCountSink.build());
-        favouriteCount.addSink(favouriteCountSink.build());
+        tweetTypeCount.addSink(tweetTypeCountSink.build());
         geomapCount.addSink(geomapCountSink.build());
 
         // Execute program
