@@ -36,7 +36,7 @@ public class TwitterStream {
         final ParameterTool params = ParameterTool.fromArgs(args);
 
         // Time window
-        Time windowSize = Time.seconds(5);
+        Time windowSize = Time.seconds(params.getInt("window", 60));
 
         // Set up the streaming execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
