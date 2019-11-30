@@ -3,7 +3,6 @@ package twitterstreaming.map;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
-
 import twitterstreaming.object.Tweet;
 
 public class TweetMap implements MapFunction<String, Tweet> {

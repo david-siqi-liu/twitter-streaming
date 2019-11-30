@@ -4,17 +4,13 @@ package twitterstreaming.util;
 
 import com.twitter.hbc.core.endpoint.Location;
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
-
 import com.twitter.hbc.core.endpoint.StreamingEndpoint;
 import org.apache.flink.streaming.connectors.twitter.TwitterSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 
 public class TwitterFilterEndpoint implements TwitterSource.EndpointInitializer, Serializable {
@@ -37,7 +33,7 @@ public class TwitterFilterEndpoint implements TwitterSource.EndpointInitializer,
         Collections.addAll(this.languages, languages);
     }
 
-    public void AddNAOnly(){
+    public void AddNAOnly() {
         this.onlyNA = true;
     }
 
@@ -45,7 +41,7 @@ public class TwitterFilterEndpoint implements TwitterSource.EndpointInitializer,
     public StreamingEndpoint createEndpoint() {
         StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint(false);
 
-        if (this.onlyNA){
+        if (this.onlyNA) {
             endpoint.locations(Arrays.asList(
                     new Location(
                             // North America
@@ -55,7 +51,7 @@ public class TwitterFilterEndpoint implements TwitterSource.EndpointInitializer,
             );
         }
 
-        if (this.languages.size() > 0){
+        if (this.languages.size() > 0) {
             endpoint.languages(this.languages);
         }
 

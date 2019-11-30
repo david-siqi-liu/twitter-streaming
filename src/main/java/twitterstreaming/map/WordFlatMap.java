@@ -3,9 +3,9 @@ package twitterstreaming.map;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.util.Collector;
-import java.util.StringTokenizer;
-
 import twitterstreaming.object.Tweet;
+
+import java.util.StringTokenizer;
 
 public class WordFlatMap implements FlatMapFunction<Tweet, Tuple2<String, Integer>> {
 
