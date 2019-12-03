@@ -16,11 +16,8 @@ public class HashtagFlatMap implements FlatMapFunction<Tweet, Tuple2<String, Int
     public void flatMap(Tweet value, Collector<Tuple2<String, Integer>> out) throws Exception {
         // Hashtags
         if (value.getHashtags() != null) {
-            Iterator<String> iter = value.getHashtags().iterator();
 
-            while (iter.hasNext()) {
-                String result = iter.next();
-
+            for (String result : value.getHashtags()) {
                 if (!result.equals("")) {
                     out.collect(new Tuple2<>(result.toLowerCase(), 1));
                 }
@@ -28,3 +25,4 @@ public class HashtagFlatMap implements FlatMapFunction<Tweet, Tuple2<String, Int
         }
     }
 }
+
