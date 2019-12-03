@@ -39,7 +39,7 @@ public class TwitterFilterEndpoint implements TwitterSource.EndpointInitializer,
 
     @Override
     public StreamingEndpoint createEndpoint() {
-        StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint(false);
+        StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint();
 
         if (this.onlyNA) {
             endpoint.locations(Arrays.asList(

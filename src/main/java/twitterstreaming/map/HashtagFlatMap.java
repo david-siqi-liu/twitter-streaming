@@ -22,7 +22,7 @@ public class HashtagFlatMap implements FlatMapFunction<Tweet, Tuple2<String, Int
                 String result = iter.next();
 
                 if (!result.equals("")) {
-                    out.collect(new Tuple2<>(result, 1));
+                    out.collect(new Tuple2<>(result.toLowerCase(), 1));
                 }
             }
         }

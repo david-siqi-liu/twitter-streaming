@@ -20,8 +20,8 @@ public class WordFlatMap implements FlatMapFunction<Tweet, Tuple2<String, Intege
         while (tokenizer.hasMoreTokens()) {
             String result = tokenizer.nextToken().replaceAll("\\s*", "").toLowerCase();
 
-            if (!result.equals("")) {
-                out.collect(new Tuple2<>(result, 1));
+            if (!result.equals("") && !result.substring(0,1).equals("@") && !result.substring(0,1).equals("#")) {
+                out.collect(new Tuple2<>(result.toLowerCase(), 1));
             }
         }
     }
