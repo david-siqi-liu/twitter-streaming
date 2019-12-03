@@ -73,7 +73,7 @@ public class TwitterStream {
         // Stream source
         DataStream<String> streamSource = env.addSource(twittersource);
 
-        // Get tweets, store in Tweet objects
+        // Get tweets JSON, store in Tweet objects
         DataStream<Tweet> tweets = streamSource
                 .map(new TweetMap());
 
@@ -84,7 +84,7 @@ public class TwitterStream {
                 .timeWindow(windowSize)
                 .sum(1);
 
-        // Create Tuple2 <String, Integer> of <Word, Count>
+        // Create Tuple2 <String, Integer> of <Hashtag, Count>
         DataStream<Tuple2<String, Integer>> hashtagCount = tweets
                 .flatMap(new HashtagFlatMap())
                 .keyBy(0)
@@ -151,11 +151,12 @@ public class TwitterStream {
                 new TweetTypeCountSink("type-count-index", "_doc")
         );
 
-        // Create an ElasticsearchSink for favouriteCount
-        ElasticsearchSink.Builder<Tuple2<Tuple2<Float, Float>, Integer>> geomapCountSink = new ElasticsearchSink.Builder<>(
-                httpHosts,
-                new GeoMapCountSink("geomap-count-index", "_doc")
-        );
+        // Create an ElasticsearchSink for Geographic Map
+        ElasticsearchSink.Builder<Tuple2<Tuple2<Float, Float>, Integer>> geomapCountSink =
+                new ElasticsearchSink.Builder<>(
+                        httpHosts,
+                        new GeoMapCountSink("geomap-count-index", "_doc")
+                );
 
         // Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
         wordCountSink.setBulkFlushMaxActions(1);

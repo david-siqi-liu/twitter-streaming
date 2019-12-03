@@ -15,10 +15,10 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 public class Client {
 
     private static Client instance = null;
-    private RestHighLevelClient client;
 
     private Client() {
-        this.client = new RestHighLevelClient(RestClient.builder(new HttpHost("127.0.0.1", 9200, "http")));
+        RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(
+                new HttpHost("127.0.0.1", 9200, "http")));
     }
 
     public static Client getInstance() {
@@ -35,7 +35,8 @@ public class Client {
         "docId");
     request.source(docSource, XContentType.JSON)
      */
-    public IndexRequest requestIndex(String indexName, String typeName, String docId, XContentBuilder json) {
+    public IndexRequest requestIndex(String indexName, String typeName,
+                                     String docId, XContentBuilder json) {
 
         return Requests.indexRequest()
                 .index(indexName)

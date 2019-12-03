@@ -10,7 +10,7 @@ public class TweetTypeCountFlatMap implements FlatMapFunction<Tweet, Tuple2<Stri
      * Retweet/Tweet
      */
     @Override
-    public void flatMap(Tweet value, Collector<Tuple2<String, Integer>> out) throws Exception {
+    public void flatMap(Tweet value, Collector<Tuple2<String, Integer>> out) {
         if (value.getRetweet()) {
             out.collect(new Tuple2<>("Retweet", 1));
         } else {
